@@ -1,585 +1,152 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rubik's Cube 3D + Mechanical Sound</title>
-<style>
-  :root {
-    --bg: #12141a;
-    --panel: #1e222d;
-    --text: #e2e8f0;
-    --accent: #38bdf8;
-    --cube-size: 240px;
-    --cubie-size: 76px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-  body {
-    background: radial-gradient(circle at 50% 30%, #1e2536 0%, var(--bg) 80%);
-    color: var(--text);
-    font-family: system-ui, -apple-system, sans-serif;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    overflow: hidden;
-  }
-  header {
-    margin-top: 12px;
-    text-align: center;
-  }
-  header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: 1px; color: #f8fafc; }
-  header p { font-size: 0.8rem; color: #94a3b8; margin-top: 2px; }
-
-  .stats {
-    display: flex;
-    gap: 16px;
-    margin-top: 8px;
-    font-family: monospace;
-    font-size: 0.95rem;
-    background: rgba(0,0,0,0.35);
-    padding: 6px 16px;
-    border-radius: 999px;
-    border: 1px solid rgba(255,255,255,0.08);
-  }
-
-  .viewport {
-    flex: 1;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    perspective: 900px;
-    cursor: grab;
-    touch-action: none;
-  }
-  .viewport:active { cursor: grabbing; }
-
-  .scene {
-    width: var(--cube-size);
-    height: var(--cube-size);
-    position: relative;
-    transform-style: preserve-3d;
-    transform: rotateX(-24deg) rotateY(-36deg);
-    transition: transform 0.05s linear;
-  }
-
-  .rubik-pivot {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    transform-style: preserve-3d;
-  }
-
-  .cubie {
-    width: var(--cubie-size);
-    height: var(--cubie-size);
-    position: absolute;
-    transform-style: preserve-3d;
-    left: 50%;
-    top: 50%;
-    margin-left: calc(-1 * var(--cubie-size) / 2);
-    margin-top: calc(-1 * var(--cubie-size) / 2);
-  }
-
-  .face {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border-radius: 6px;
-    border: 3px solid #111;
-    background: #050505;
-    backface-visibility: hidden;
-    box-shadow: inset 0 0 4px rgba(0,0,0,0.6);
-  }
-  .face.up    { transform: rotateX(90deg) translateZ(calc(var(--cubie-size)/2)); }
-  .face.down  { transform: rotateX(-90deg) translateZ(calc(var(--cubie-size)/2)); }
-  .face.left  { transform: rotateY(-90deg) translateZ(calc(var(--cubie-size)/2)); }
-  .face.right { transform: rotateY(90deg) translateZ(calc(var(--cubie-size)/2)); }
-  .face.front { transform: translateZ(calc(var(--cubie-size)/2)); }
-  .face.back  { transform: rotateY(180deg) translateZ(calc(var(--cubie-size)/2)); }
-
-  /* Colors standard Rubik */
-  .c-W { background: #f8fafc; }
-  .c-Y { background: #facc15; }
-  .c-G { background: #22c55e; }
-  .c-B { background: #3b82f6; }
-  .c-O { background: #f97316; }
-  .c-R { background: #ef4444; }
-  .c-K { background: #111827; }
-
-  .controls {
-    background: var(--panel);
-    width: 100%;
-    max-width: 640px;
-    padding: 12px 16px;
-    border-radius: 16px 16px 0 0;
-    box-shadow: 0 -8px 24px rgba(0,0,0,0.5);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    border-top: 1px solid rgba(255,255,255,0.1);
-  }
-
-  .btn-row {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-
-  button {
-    background: #2a3142;
-    color: #e2e8f0;
-    border: 1px solid #3d465c;
-    border-radius: 6px;
-    padding: 6px 12px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.1s ease;
-  }
-  button:hover {
-    background: #384259;
-    border-color: var(--accent);
-    color: #fff;
-  }
-  button:active {
-    transform: translateY(1px);
-    background: #1e2433;
-  }
-  button.action-btn {
-    background: #0284c7;
-    border-color: #38bdf8;
-    color: #fff;
-  }
-  button.action-btn:hover { background: #0369a1; }
-
-  .kbd-hint {
-    font-size: 0.75rem;
-    color: #64748b;
-    text-align: center;
-  }
-  kbd {
-    background: #111827;
-    padding: 1px 4px;
-    border-radius: 3px;
-    border: 1px solid #374151;
-    font-family: monospace;
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Rubik 3D — Realistic Speedcube Simulator</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <div id="app-container">
+    <!-- Top HUD -->
+    <header>
+      <h1 class="brand-title">Rubik 3D</h1>
+      <p class="brand-subtitle">Realistic Speedcube Simulator</p>
+      <div class="hud-stats">
+        <div class="hud-item">
+          <span class="hud-label">MOVES</span>
+          <span class="hud-val" id="hud-moves">0</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">TIME</span>
+          <span class="hud-val" id="hud-timer">00:00.00</span>
+        </div>
+      </div>
+    </header>
 
-<header>
-  <h1>RUBIK'S CUBE 3D</h1>
-  <p>Tarik area kubus untuk putar kamera. Klik tombol untuk putar sisi.</p>
-  <div class="stats">
-    <span>Gerakan: <strong id="moves">0</strong></span>
-    <span>Waktu: <strong id="timer">00:00</strong></span>
+    <!-- 3D Canvas Container -->
+    <div id="canvas-container"></div>
+
+    <!-- Bottom Dock Controls -->
+    <nav class="bottom-dock">
+      <div class="dock-card">
+        <div class="button-group">
+          <button id="btn-scramble" class="primary" title="Shuffle Cube (Space)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>
+            </svg>
+            Shuffle
+          </button>
+          <button id="btn-reset" title="Reset Solved State">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+              <path d="M3 3v5h5"/>
+            </svg>
+            Reset
+          </button>
+          <button id="btn-undo" title="Undo Last Turn (Ctrl+Z)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 14L4 9l5-5"/>
+              <path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/>
+            </svg>
+            Undo
+          </button>
+          <button id="btn-settings" class="icon-btn" title="Audio & Animation Settings">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+            Settings
+          </button>
+        </div>
+
+        <!-- Notation Shortcut Row -->
+        <div class="button-group notation-row">
+          <button class="notation-btn" data-move="U">U</button>
+          <button class="notation-btn" data-move="U'">U'</button>
+          <button class="notation-btn" data-move="D">D</button>
+          <button class="notation-btn" data-move="D'">D'</button>
+          <button class="notation-btn" data-move="L">L</button>
+          <button class="notation-btn" data-move="L'">L'</button>
+          <button class="notation-btn" data-move="R">R</button>
+          <button class="notation-btn" data-move="R'">R'</button>
+          <button class="notation-btn" data-move="F">F</button>
+          <button class="notation-btn" data-move="F'">F'</button>
+          <button class="notation-btn" data-move="B">B</button>
+          <button class="notation-btn" data-move="B'">B'</button>
+        </div>
+
+        <div class="hint-bar">
+          Drag face to turn layer &bull; Drag outside to rotate &bull; Keys: <kbd>U</kbd> <kbd>D</kbd> <kbd>L</kbd> <kbd>R</kbd> <kbd>F</kbd> <kbd>B</kbd> (<kbd>Shift</kbd> for prime) &bull; <kbd>Ctrl+Z</kbd> Undo
+        </div>
+      </div>
+    </nav>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="settings-heading">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h3 id="settings-heading" class="modal-title">Settings</h3>
+          <button id="btn-close-settings" class="close-btn" aria-label="Close settings">&times;</button>
+        </div>
+
+        <div class="setting-row">
+          <label for="setting-sound" class="setting-label">Mechanical Sound</label>
+          <div class="setting-ctrl">
+            <input type="checkbox" id="setting-sound" checked>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <label for="setting-volume" class="setting-label">Volume</label>
+          <div class="setting-ctrl">
+            <input type="range" id="setting-volume" min="0" max="100" value="60">
+            <span id="val-volume" style="font-size:0.82rem; min-width:38px;">60%</span>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <label for="setting-speed" class="setting-label">Turn Speed</label>
+          <div class="setting-ctrl">
+            <input type="range" id="setting-speed" min="80" max="400" value="180">
+            <span id="val-speed" style="font-size:0.82rem; min-width:44px;">180ms</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Solved Victory Modal -->
+    <div id="win-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="win-heading">
+      <div class="modal-dialog win-dialog">
+        <h2 id="win-heading" class="win-title">Cube Solved!</h2>
+        <div class="win-stats">
+          <div class="win-stat-box">
+            <div class="win-stat-val" id="win-time">00:00.00</div>
+            <div class="win-stat-lbl">Time</div>
+          </div>
+          <div class="win-stat-box">
+            <div class="win-stat-val" id="win-moves">0</div>
+            <div class="win-stat-lbl">Moves</div>
+          </div>
+        </div>
+        <div class="button-group">
+          <button id="btn-play-again" class="primary">Play Again</button>
+          <button id="btn-close-win">Close</button>
+        </div>
+      </div>
+    </div>
   </div>
-</header>
 
-<div class="viewport" id="viewport">
-  <div class="scene" id="scene">
-    <div class="rubik-pivot" id="cube"></div>
-  </div>
-</div>
-
-<div class="controls">
-  <div class="btn-row">
-    <button onclick="turn('U')">U</button>
-    <button onclick="turn('U', true)">U'</button>
-    <button onclick="turn('D')">D</button>
-    <button onclick="turn('D', true)">D'</button>
-    <button onclick="turn('L')">L</button>
-    <button onclick="turn('L', true)">L'</button>
-    <button onclick="turn('R')">R</button>
-    <button onclick="turn('R', true)">R'</button>
-    <button onclick="turn('F')">F</button>
-    <button onclick="turn('F', true)">F'</button>
-    <button onclick="turn('B')">B</button>
-    <button onclick="turn('B', true)">B'</button>
-  </div>
-
-  <div class="btn-row">
-    <button class="action-btn" onclick="scramble()">Acak (Scramble)</button>
-    <button class="action-btn" onclick="resetCube()">Reset</button>
-    <button onclick="toggleSound()" id="soundBtn">Suara: ON</button>
-  </div>
-
-  <div class="kbd-hint">
-    Keyboard: <kbd>U</kbd> <kbd>D</kbd> <kbd>L</kbd> <kbd>R</kbd> <kbd>F</kbd> <kbd>B</kbd> (tahan <kbd>Shift</kbd> untuk arah balik) | Spasi: Acak
-  </div>
-</div>
-
-<script>
-// --- AUDIO ENGINE (Mechanical switch & ratchet clicks) ---
-let audioCtx = null;
-let soundEnabled = true;
-
-function initAudio() {
-  if (!audioCtx) {
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    if (AudioContext) audioCtx = new AudioContext();
-  }
-  if (audioCtx && audioCtx.state === 'suspended') {
-    audioCtx.resume();
-  }
-}
-
-function playMechanicalSound() {
-  if (!soundEnabled) return;
-  initAudio();
-  if (!audioCtx) return;
-
-  const t0 = audioCtx.currentTime;
-
-  // 1. Transient burst: Plastic snap / spring impact
-  const bufferSize = audioCtx.sampleRate * 0.035; // 35ms burst
-  const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-  const data = noiseBuffer.getChannelData(0);
-  for (let i = 0; i < bufferSize; i++) {
-    data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.006));
-  }
-
-  const noise = audioCtx.createBufferSource();
-  noise.buffer = noiseBuffer;
-
-  const bandpass = audioCtx.createBiquadFilter();
-  bandpass.type = 'bandpass';
-  bandpass.frequency.setValueAtTime(1400 + Math.random() * 400, t0);
-  bandpass.Q.setValueAtTime(3.5, t0);
-
-  const noiseGain = audioCtx.createGain();
-  noiseGain.gain.setValueAtTime(0.7, t0);
-  noiseGain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.035);
-
-  noise.connect(bandpass);
-  bandpass.connect(noiseGain);
-  noiseGain.connect(audioCtx.destination);
-  noise.start(t0);
-
-  // 2. Body resonance: Hollow mechanical plastic "clack"
-  const osc = audioCtx.createOscillator();
-  const oscGain = audioCtx.createGain();
-
-  const baseFreq = 260 + Math.random() * 60;
-  osc.type = 'triangle';
-  osc.frequency.setValueAtTime(baseFreq, t0);
-  osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.4, t0 + 0.04);
-
-  oscGain.gain.setValueAtTime(0.9, t0);
-  oscGain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.045);
-
-  osc.connect(oscGain);
-  oscGain.connect(audioCtx.destination);
-
-  osc.start(t0);
-  osc.stop(t0 + 0.05);
-
-  // 3. Secondary micro-spring friction tick (slightly delayed)
-  setTimeout(() => {
-    if (!audioCtx || !soundEnabled) return;
-    const t1 = audioCtx.currentTime;
-    const tick = audioCtx.createOscillator();
-    const tickGain = audioCtx.createGain();
-    tick.type = 'sine';
-    tick.frequency.setValueAtTime(800 + Math.random() * 200, t1);
-    tick.frequency.exponentialRampToValueAtTime(120, t1 + 0.015);
-
-    tickGain.gain.setValueAtTime(0.25, t1);
-    tickGain.gain.exponentialRampToValueAtTime(0.001, t1 + 0.015);
-
-    tick.connect(tickGain);
-    tickGain.connect(audioCtx.destination);
-    tick.start(t1);
-    tick.stop(t1 + 0.02);
-  }, 12);
-}
-
-function toggleSound() {
-  soundEnabled = !soundEnabled;
-  document.getElementById('soundBtn').textContent = 'Suara: ' + (soundEnabled ? 'ON' : 'OFF');
-}
-
-// --- RUBIK CUBE ENGINE ---
-const SPACING = 80; // distance between cubie centers in px
-const cubeEl = document.getElementById('cube');
-const cubies = [];
-let moveCount = 0;
-let isAnimating = false;
-let moveQueue = [];
-
-// Timer
-let timerInterval = null;
-let seconds = 0;
-let timerRunning = false;
-
-function startTimer() {
-  if (timerRunning) return;
-  timerRunning = true;
-  timerInterval = setInterval(() => {
-    seconds++;
-    const m = String(Math.floor(seconds / 60)).padStart(2, '0');
-    const s = String(seconds % 60).padStart(2, '0');
-    document.getElementById('timer').textContent = `${m}:${s}`;
-  }, 1000);
-}
-
-function stopTimer() {
-  clearInterval(timerInterval);
-  timerRunning = false;
-}
-
-function resetStats() {
-  stopTimer();
-  seconds = 0;
-  moveCount = 0;
-  document.getElementById('timer').textContent = '00:00';
-  document.getElementById('moves').textContent = '0';
-}
-
-// Build 27 cubies
-function createCubies() {
-  cubeEl.innerHTML = '';
-  cubies.length = 0;
-
-  for (let x = -1; x <= 1; x++) {
-    for (let y = -1; y <= 1; y++) {
-      for (let z = -1; z <= 1; z++) {
-        const el = document.createElement('div');
-        el.className = 'cubie';
-
-        const cubie = {
-          x, y, z,
-          el,
-          faces: {
-            up: y === -1 ? 'c-W' : 'c-K',
-            down: y === 1 ? 'c-Y' : 'c-K',
-            left: x === -1 ? 'c-O' : 'c-K',
-            right: x === 1 ? 'c-R' : 'c-K',
-            front: z === 1 ? 'c-G' : 'c-K',
-            back: z === -1 ? 'c-B' : 'c-K'
-          }
-        };
-
-        ['up', 'down', 'left', 'right', 'front', 'back'].forEach(faceName => {
-          const f = document.createElement('div');
-          f.className = `face ${faceName} ${cubie.faces[faceName]}`;
-          f.dataset.face = faceName;
-          el.appendChild(f);
-        });
-
-        cubeEl.appendChild(el);
-        cubies.push(cubie);
-        updateCubieTransform(cubie);
-      }
-    }
-  }
-}
-
-function updateCubieTransform(c) {
-  c.el.style.transform = `translate3d(${c.x * SPACING}px, ${c.y * SPACING}px, ${c.z * SPACING}px)`;
-}
-
-function updateFaceClasses(c) {
-  Array.from(c.el.children).forEach(faceEl => {
-    const fn = faceEl.dataset.face;
-    faceEl.className = `face ${fn} ${c.faces[fn]}`;
-  });
-}
-
-// Rotate face logic
-// Face definitions:
-// U: y = -1 | D: y = 1 | L: x = -1 | R: x = 1 | F: z = 1 | B: z = -1
-function turn(face, prime = false) {
-  if (isAnimating) {
-    moveQueue.push({ face, prime });
-    return;
-  }
-  startTimer();
-  isAnimating = true;
-
-  playMechanicalSound();
-
-  moveCount++;
-  document.getElementById('moves').textContent = moveCount;
-
-  // Filter affected cubies
-  let filterFn;
-  let axis;
-  let angle = (prime ? -1 : 1) * 90;
-
-  switch (face) {
-    case 'U': filterFn = c => c.y === -1; axis = 'Y'; angle = -angle; break;
-    case 'D': filterFn = c => c.y === 1;  axis = 'Y'; angle =  angle; break;
-    case 'L': filterFn = c => c.x === -1; axis = 'X'; angle =  angle; break;
-    case 'R': filterFn = c => c.x === 1;  axis = 'X'; angle = -angle; break;
-    case 'F': filterFn = c => c.z === 1;  axis = 'Z'; angle = -angle; break;
-    case 'B': filterFn = c => c.z === -1; axis = 'Z'; angle =  angle; break;
-  }
-
-  const affected = cubies.filter(filterFn);
-
-  // Animate layer transition
-  affected.forEach(c => {
-    c.el.style.transition = 'transform 0.16s cubic-bezier(0.4, 0.0, 0.2, 1)';
-    const cur = `translate3d(${c.x * SPACING}px, ${c.y * SPACING}px, ${c.z * SPACING}px)`;
-    c.el.style.transform = `${cur} rotate${axis}(${angle}deg)`;
-  });
-
-  setTimeout(() => {
-    // Commit mathematical coordinates & face sticker rotation
-    affected.forEach(c => {
-      c.el.style.transition = 'none';
-
-      // Matrix rotation of position and stickers
-      const { x, y, z } = c;
-      const f = { ...c.faces };
-      const dir = (prime ? -1 : 1);
-
-      if (face === 'U') {
-        // around -Y
-        if (!prime) {
-          c.x = -z; c.z = x;
-          c.faces = { ...f, front: f.left, left: f.back, back: f.right, right: f.front };
-        } else {
-          c.x = z; c.z = -x;
-          c.faces = { ...f, front: f.right, right: f.back, back: f.left, left: f.front };
-        }
-      } else if (face === 'D') {
-        // around +Y
-        if (!prime) {
-          c.x = z; c.z = -x;
-          c.faces = { ...f, front: f.right, right: f.back, back: f.left, left: f.front };
-        } else {
-          c.x = -z; c.z = x;
-          c.faces = { ...f, front: f.left, left: f.back, back: f.right, right: f.front };
-        }
-      } else if (face === 'R') {
-        // around +X
-        if (!prime) {
-          c.y = z; c.z = -y;
-          c.faces = { ...f, up: f.front, front: f.down, down: f.back, back: f.up };
-        } else {
-          c.y = -z; c.z = y;
-          c.faces = { ...f, up: f.back, back: f.down, down: f.front, front: f.up };
-        }
-      } else if (face === 'L') {
-        // around -X
-        if (!prime) {
-          c.y = -z; c.z = y;
-          c.faces = { ...f, up: f.back, back: f.down, down: f.front, front: f.up };
-        } else {
-          c.y = z; c.z = -y;
-          c.faces = { ...f, up: f.front, front: f.down, down: f.back, back: f.up };
-        }
-      } else if (face === 'F') {
-        // around +Z
-        if (!prime) {
-          c.x = -y; c.y = x;
-          c.faces = { ...f, up: f.left, left: f.down, down: f.right, right: f.up };
-        } else {
-          c.x = y; c.y = -x;
-          c.faces = { ...f, up: f.right, right: f.down, down: f.left, left: f.up };
-        }
-      } else if (face === 'B') {
-        // around -Z
-        if (!prime) {
-          c.x = y; c.y = -x;
-          c.faces = { ...f, up: f.right, right: f.down, down: f.left, left: f.up };
-        } else {
-          c.x = -y; c.y = x;
-          c.faces = { ...f, up: f.left, left: f.down, down: f.right, right: f.up };
-        }
-      }
-
-      updateCubieTransform(c);
-      updateFaceClasses(c);
-    });
-
-    isAnimating = false;
-    if (moveQueue.length > 0) {
-      const next = moveQueue.shift();
-      turn(next.face, next.prime);
-    }
-  }, 170);
-}
-
-// Scramble
-function scramble(steps = 20) {
-  const faces = ['U', 'D', 'L', 'R', 'F', 'B'];
-  for (let i = 0; i < steps; i++) {
-    const f = faces[Math.floor(Math.random() * faces.length)];
-    const p = Math.random() < 0.5;
-    moveQueue.push({ face: f, prime: p });
-  }
-  if (!isAnimating && moveQueue.length > 0) {
-    const next = moveQueue.shift();
-    turn(next.face, next.prime);
-  }
-}
-
-function resetCube() {
-  moveQueue = [];
-  createCubies();
-  resetStats();
-}
-
-// --- ORBIT CAMERA CONTROLS ---
-const sceneEl = document.getElementById('scene');
-const viewport = document.getElementById('viewport');
-let rotX = -24;
-let rotY = -36;
-let isDragging = false;
-let startPointerX = 0;
-let startPointerY = 0;
-
-viewport.addEventListener('pointerdown', (e) => {
-  // don't drag if clicking buttons
-  if (e.target.closest('.controls')) return;
-  initAudio();
-  isDragging = true;
-  startPointerX = e.clientX;
-  startPointerY = e.clientY;
-  viewport.setPointerCapture(e.pointerId);
-});
-
-viewport.addEventListener('pointermove', (e) => {
-  if (!isDragging) return;
-  const dx = e.clientX - startPointerX;
-  const dy = e.clientY - startPointerY;
-  rotY += dx * 0.45;
-  rotX -= dy * 0.45;
-  // clamp X to avoid flip confusion
-  rotX = Math.max(-85, Math.min(85, rotX));
-  sceneEl.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
-  startPointerX = e.clientX;
-  startPointerY = e.clientY;
-});
-
-viewport.addEventListener('pointerup', (e) => {
-  isDragging = false;
-  try { viewport.releasePointerCapture(e.pointerId); } catch (_) {}
-});
-
-viewport.addEventListener('pointercancel', () => { isDragging = false; });
-
-// Keyboard controls
-window.addEventListener('keydown', (e) => {
-  const key = e.key.toUpperCase();
-  const prime = e.shiftKey;
-  if (['U', 'D', 'L', 'R', 'F', 'B'].includes(key)) {
-    turn(key, prime);
-  } else if (e.code === 'Space') {
-    e.preventDefault();
-    scramble();
-  }
-});
-
-// Init
-createCubies();
-</script>
+  <!-- Scripts -->
+  <script src="js/three.min.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/cubeState.js"></script>
+  <script src="js/cube.js"></script>
+  <script src="js/rotation.js"></script>
+  <script src="js/controls.js"></script>
+  <script src="js/scramble.js"></script>
+  <script src="js/timer.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
 </body>
 </html>

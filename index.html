@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rubik's Cube 3D + Mechanical Sound</title>
+<style>
+  :root {
+    --bg: #12141a;
+    --panel: #1e222d;
+    --text: #e2e8f0;
+    --accent: #38bdf8;
+    --cube-size: 240px;
+    --cubie-size: 76px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: radial-gradient(circle at 50% 30%, #1e2536 0%, var(--bg) 80%);
+    color: var(--text);
+    font-family: system-ui, -apple-system, sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+  }
+  header {
+    margin-top: 12px;
+    text-align: center;
+  }
+  header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: 1px; color: #f8fafc; }
+  header p { font-size: 0.8rem; color: #94a3b8; margin-top: 2px; }
+
+  .stats {
+    display: flex;
+    gap: 16px;
+    margin-top: 8px;
+    font-family: monospace;
+    font-size: 0.95rem;
+    background: rgba(0,0,0,0.35);
+    padding: 6px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .viewport {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    perspective: 900px;
+    cursor: grab;
+    touch-action: none;
+  }
+  .viewport:active { cursor: grabbing; }
+
+  .scene {
+    width: var(--cube-size);
+    height: var(--cube-size);
+    position: relative;
+    transform-style: preserve-3d;
+    transform: rotateX(-24deg) rotateY(-36deg);
+    transition: transform 0.05s linear;
+  }
+
+  .rubik-pivot {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    transform-style: preserve-3d;
+  }
+
+  .cubie {
+    width: var(--cubie-size);
+    height: var(--cubie-size);
+    position: absolute;
+    transform-style: preserve-3d;
+    left: 50%;
+    top: 50%;
+    margin-left: calc(-1 * var(--cubie-size) / 2);
+    margin-top: calc(-1 * var(--cubie-size) / 2);
+  }
+
+  .face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 6px;
+    border: 3px solid #111;
+    background: #050505;
+    backface-visibility: hidden;
+    box-shadow: inset 0 0 4px rgba(0,0,0,0.6);
+  }
+  .face.up    { transform: rotateX(90deg) translateZ(calc(var(--cubie-size)/2)); }
+  .face.down  { transform: rotateX(-90deg) translateZ(calc(var(--cubie-size)/2)); }
+  .face.left  { transform: rotateY(-90deg) translateZ(calc(var(--cubie-size)/2)); }
+  .face.right { transform: rotateY(90deg) translateZ(calc(var(--cubie-size)/2)); }
+  .face.front { transform: translateZ(calc(var(--cubie-size)/2)); }
+  .face.back  { transform: rotateY(180deg) translateZ(calc(var(--cubie-size)/2)); }
+
+  /* Colors standard Rubik */
+  .c-W { background: #f8fafc; }
+  .c-Y { background: #facc15; }
+  .c-G { background: #22c55e; }
+  .c-B { background: #3b82f6; }
+  .c-O { background: #f97316; }
+  .c-R { background: #ef4444; }
+  .c-K { background: #111827; }
+
+  .controls {
+    background: var(--panel);
+    width: 100%;
+    max-width: 640px;
+    padding: 12px 16px;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -8px 24px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .btn-row {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  button {
+    background: #2a3142;
+    color: #e2e8f0;
+    border: 1px solid #3d465c;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.1s ease;
+  }
+  button:hover {
+    background: #384259;
+    border-color: var(--accent);
+    color: #fff;
+  }
+  button:active {
+    transform: translateY(1px);
+    background: #1e2433;
+  }
+  button.action-btn {
+    background: #0284c7;
+    border-color: #38bdf8;
+    color: #fff;
+  }
+  button.action-btn:hover { background: #0369a1; }
+
+  .kbd-hint {
+    font-size: 0.75rem;
+    color: #64748b;
+    text-align: center;
+  }
+  kbd {
+    background: #111827;
+    padding: 1px 4px;
+    border-radius: 3px;
+    border: 1px solid #374151;
+    font-family: monospace;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>RUBIK'S CUBE 3D</h1>
+  <p>Tarik area kubus untuk putar kamera. Klik tombol untuk putar sisi.</p>
+  <div class="stats">
+    <span>Gerakan: <strong id="moves">0</strong></span>
+    <span>Waktu: <strong id="timer">00:00</strong></span>
+  </div>
+</header>
+
+<div class="viewport" id="viewport">
+  <div class="scene" id="scene">
+    <div class="rubik-pivot" id="cube"></div>
+  </div>
+</div>
+
+<div class="controls">
+  <div class="btn-row">
+    <button onclick="turn('U')">U</button>
+    <button onclick="turn('U', true)">U'</button>
+    <button onclick="turn('D')">D</button>
+    <button onclick="turn('D', true)">D'</button>
+    <button onclick="turn('L')">L</button>
+    <button onclick="turn('L', true)">L'</button>
+    <button onclick="turn('R')">R</button>
+    <button onclick="turn('R', true)">R'</button>
+    <button onclick="turn('F')">F</button>
+    <button onclick="turn('F', true)">F'</button>
+    <button onclick="turn('B')">B</button>
+    <button onclick="turn('B', true)">B'</button>
+  </div>
+
+  <div class="btn-row">
+    <button class="action-btn" onclick="scramble()">Acak (Scramble)</button>
+    <button class="action-btn" onclick="resetCube()">Reset</button>
+    <button onclick="toggleSound()" id="soundBtn">Suara: ON</button>
+  </div>
+
+  <div class="kbd-hint">
+    Keyboard: <kbd>U</kbd> <kbd>D</kbd> <kbd>L</kbd> <kbd>R</kbd> <kbd>F</kbd> <kbd>B</kbd> (tahan <kbd>Shift</kbd> untuk arah balik) | Spasi: Acak
+  </div>
+</div>
+
+<script>
+// --- AUDIO ENGINE (Mechanical switch & ratchet clicks) ---
+let audioCtx = null;
+let soundEnabled = true;
+
+function initAudio() {
+  if (!audioCtx) {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (AudioContext) audioCtx = new AudioContext();
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+}
+
+function playMechanicalSound() {
+  if (!soundEnabled) return;
+  initAudio();
+  if (!audioCtx) return;
+
+  const t0 = audioCtx.currentTime;
+
+  // 1. Transient burst: Plastic snap / spring impact
+  const bufferSize = audioCtx.sampleRate * 0.035; // 35ms burst
+  const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = noiseBuffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.006));
+  }
+
+  const noise = audioCtx.createBufferSource();
+  noise.buffer = noiseBuffer;
+
+  const bandpass = audioCtx.createBiquadFilter();
+  bandpass.type = 'bandpass';
+  bandpass.frequency.setValueAtTime(1400 + Math.random() * 400, t0);
+  bandpass.Q.setValueAtTime(3.5, t0);
+
+  const noiseGain = audioCtx.createGain();
+  noiseGain.gain.setValueAtTime(0.7, t0);
+  noiseGain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.035);
+
+  noise.connect(bandpass);
+  bandpass.connect(noiseGain);
+  noiseGain.connect(audioCtx.destination);
+  noise.start(t0);
+
+  // 2. Body resonance: Hollow mechanical plastic "clack"
+  const osc = audioCtx.createOscillator();
+  const oscGain = audioCtx.createGain();
+
+  const baseFreq = 260 + Math.random() * 60;
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(baseFreq, t0);
+  osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.4, t0 + 0.04);
+
+  oscGain.gain.setValueAtTime(0.9, t0);
+  oscGain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.045);
+
+  osc.connect(oscGain);
+  oscGain.connect(audioCtx.destination);
+
+  osc.start(t0);
+  osc.stop(t0 + 0.05);
+
+  // 3. Secondary micro-spring friction tick (slightly delayed)
+  setTimeout(() => {
+    if (!audioCtx || !soundEnabled) return;
+    const t1 = audioCtx.currentTime;
+    const tick = audioCtx.createOscillator();
+    const tickGain = audioCtx.createGain();
+    tick.type = 'sine';
+    tick.frequency.setValueAtTime(800 + Math.random() * 200, t1);
+    tick.frequency.exponentialRampToValueAtTime(120, t1 + 0.015);
+
+    tickGain.gain.setValueAtTime(0.25, t1);
+    tickGain.gain.exponentialRampToValueAtTime(0.001, t1 + 0.015);
+
+    tick.connect(tickGain);
+    tickGain.connect(audioCtx.destination);
+    tick.start(t1);
+    tick.stop(t1 + 0.02);
+  }, 12);
+}
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  document.getElementById('soundBtn').textContent = 'Suara: ' + (soundEnabled ? 'ON' : 'OFF');
+}
+
+// --- RUBIK CUBE ENGINE ---
+const SPACING = 80; // distance between cubie centers in px
+const cubeEl = document.getElementById('cube');
+const cubies = [];
+let moveCount = 0;
+let isAnimating = false;
+let moveQueue = [];
+
+// Timer
+let timerInterval = null;
+let seconds = 0;
+let timerRunning = false;
+
+function startTimer() {
+  if (timerRunning) return;
+  timerRunning = true;
+  timerInterval = setInterval(() => {
+    seconds++;
+    const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+    const s = String(seconds % 60).padStart(2, '0');
+    document.getElementById('timer').textContent = `${m}:${s}`;
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+}
+
+function resetStats() {
+  stopTimer();
+  seconds = 0;
+  moveCount = 0;
+  document.getElementById('timer').textContent = '00:00';
+  document.getElementById('moves').textContent = '0';
+}
+
+// Build 27 cubies
+function createCubies() {
+  cubeEl.innerHTML = '';
+  cubies.length = 0;
+
+  for (let x = -1; x <= 1; x++) {
+    for (let y = -1; y <= 1; y++) {
+      for (let z = -1; z <= 1; z++) {
+        const el = document.createElement('div');
+        el.className = 'cubie';
+
+        const cubie = {
+          x, y, z,
+          el,
+          faces: {
+            up: y === -1 ? 'c-W' : 'c-K',
+            down: y === 1 ? 'c-Y' : 'c-K',
+            left: x === -1 ? 'c-O' : 'c-K',
+            right: x === 1 ? 'c-R' : 'c-K',
+            front: z === 1 ? 'c-G' : 'c-K',
+            back: z === -1 ? 'c-B' : 'c-K'
+          }
+        };
+
+        ['up', 'down', 'left', 'right', 'front', 'back'].forEach(faceName => {
+          const f = document.createElement('div');
+          f.className = `face ${faceName} ${cubie.faces[faceName]}`;
+          f.dataset.face = faceName;
+          el.appendChild(f);
+        });
+
+        cubeEl.appendChild(el);
+        cubies.push(cubie);
+        updateCubieTransform(cubie);
+      }
+    }
+  }
+}
+
+function updateCubieTransform(c) {
+  c.el.style.transform = `translate3d(${c.x * SPACING}px, ${c.y * SPACING}px, ${c.z * SPACING}px)`;
+}
+
+function updateFaceClasses(c) {
+  Array.from(c.el.children).forEach(faceEl => {
+    const fn = faceEl.dataset.face;
+    faceEl.className = `face ${fn} ${c.faces[fn]}`;
+  });
+}
+
+// Rotate face logic
+// Face definitions:
+// U: y = -1 | D: y = 1 | L: x = -1 | R: x = 1 | F: z = 1 | B: z = -1
+function turn(face, prime = false) {
+  if (isAnimating) {
+    moveQueue.push({ face, prime });
+    return;
+  }
+  startTimer();
+  isAnimating = true;
+
+  playMechanicalSound();
+
+  moveCount++;
+  document.getElementById('moves').textContent = moveCount;
+
+  // Filter affected cubies
+  let filterFn;
+  let axis;
+  let angle = (prime ? -1 : 1) * 90;
+
+  switch (face) {
+    case 'U': filterFn = c => c.y === -1; axis = 'Y'; angle = -angle; break;
+    case 'D': filterFn = c => c.y === 1;  axis = 'Y'; angle =  angle; break;
+    case 'L': filterFn = c => c.x === -1; axis = 'X'; angle =  angle; break;
+    case 'R': filterFn = c => c.x === 1;  axis = 'X'; angle = -angle; break;
+    case 'F': filterFn = c => c.z === 1;  axis = 'Z'; angle = -angle; break;
+    case 'B': filterFn = c => c.z === -1; axis = 'Z'; angle =  angle; break;
+  }
+
+  const affected = cubies.filter(filterFn);
+
+  // Animate layer transition
+  affected.forEach(c => {
+    c.el.style.transition = 'transform 0.16s cubic-bezier(0.4, 0.0, 0.2, 1)';
+    const cur = `translate3d(${c.x * SPACING}px, ${c.y * SPACING}px, ${c.z * SPACING}px)`;
+    c.el.style.transform = `${cur} rotate${axis}(${angle}deg)`;
+  });
+
+  setTimeout(() => {
+    // Commit mathematical coordinates & face sticker rotation
+    affected.forEach(c => {
+      c.el.style.transition = 'none';
+
+      // Matrix rotation of position and stickers
+      const { x, y, z } = c;
+      const f = { ...c.faces };
+      const dir = (prime ? -1 : 1);
+
+      if (face === 'U') {
+        // around -Y
+        if (!prime) {
+          c.x = -z; c.z = x;
+          c.faces = { ...f, front: f.left, left: f.back, back: f.right, right: f.front };
+        } else {
+          c.x = z; c.z = -x;
+          c.faces = { ...f, front: f.right, right: f.back, back: f.left, left: f.front };
+        }
+      } else if (face === 'D') {
+        // around +Y
+        if (!prime) {
+          c.x = z; c.z = -x;
+          c.faces = { ...f, front: f.right, right: f.back, back: f.left, left: f.front };
+        } else {
+          c.x = -z; c.z = x;
+          c.faces = { ...f, front: f.left, left: f.back, back: f.right, right: f.front };
+        }
+      } else if (face === 'R') {
+        // around +X
+        if (!prime) {
+          c.y = z; c.z = -y;
+          c.faces = { ...f, up: f.front, front: f.down, down: f.back, back: f.up };
+        } else {
+          c.y = -z; c.z = y;
+          c.faces = { ...f, up: f.back, back: f.down, down: f.front, front: f.up };
+        }
+      } else if (face === 'L') {
+        // around -X
+        if (!prime) {
+          c.y = -z; c.z = y;
+          c.faces = { ...f, up: f.back, back: f.down, down: f.front, front: f.up };
+        } else {
+          c.y = z; c.z = -y;
+          c.faces = { ...f, up: f.front, front: f.down, down: f.back, back: f.up };
+        }
+      } else if (face === 'F') {
+        // around +Z
+        if (!prime) {
+          c.x = -y; c.y = x;
+          c.faces = { ...f, up: f.left, left: f.down, down: f.right, right: f.up };
+        } else {
+          c.x = y; c.y = -x;
+          c.faces = { ...f, up: f.right, right: f.down, down: f.left, left: f.up };
+        }
+      } else if (face === 'B') {
+        // around -Z
+        if (!prime) {
+          c.x = y; c.y = -x;
+          c.faces = { ...f, up: f.right, right: f.down, down: f.left, left: f.up };
+        } else {
+          c.x = -y; c.y = x;
+          c.faces = { ...f, up: f.left, left: f.down, down: f.right, right: f.up };
+        }
+      }
+
+      updateCubieTransform(c);
+      updateFaceClasses(c);
+    });
+
+    isAnimating = false;
+    if (moveQueue.length > 0) {
+      const next = moveQueue.shift();
+      turn(next.face, next.prime);
+    }
+  }, 170);
+}
+
+// Scramble
+function scramble(steps = 20) {
+  const faces = ['U', 'D', 'L', 'R', 'F', 'B'];
+  for (let i = 0; i < steps; i++) {
+    const f = faces[Math.floor(Math.random() * faces.length)];
+    const p = Math.random() < 0.5;
+    moveQueue.push({ face: f, prime: p });
+  }
+  if (!isAnimating && moveQueue.length > 0) {
+    const next = moveQueue.shift();
+    turn(next.face, next.prime);
+  }
+}
+
+function resetCube() {
+  moveQueue = [];
+  createCubies();
+  resetStats();
+}
+
+// --- ORBIT CAMERA CONTROLS ---
+const sceneEl = document.getElementById('scene');
+const viewport = document.getElementById('viewport');
+let rotX = -24;
+let rotY = -36;
+let isDragging = false;
+let startPointerX = 0;
+let startPointerY = 0;
+
+viewport.addEventListener('pointerdown', (e) => {
+  // don't drag if clicking buttons
+  if (e.target.closest('.controls')) return;
+  initAudio();
+  isDragging = true;
+  startPointerX = e.clientX;
+  startPointerY = e.clientY;
+  viewport.setPointerCapture(e.pointerId);
+});
+
+viewport.addEventListener('pointermove', (e) => {
+  if (!isDragging) return;
+  const dx = e.clientX - startPointerX;
+  const dy = e.clientY - startPointerY;
+  rotY += dx * 0.45;
+  rotX -= dy * 0.45;
+  // clamp X to avoid flip confusion
+  rotX = Math.max(-85, Math.min(85, rotX));
+  sceneEl.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+  startPointerX = e.clientX;
+  startPointerY = e.clientY;
+});
+
+viewport.addEventListener('pointerup', (e) => {
+  isDragging = false;
+  try { viewport.releasePointerCapture(e.pointerId); } catch (_) {}
+});
+
+viewport.addEventListener('pointercancel', () => { isDragging = false; });
+
+// Keyboard controls
+window.addEventListener('keydown', (e) => {
+  const key = e.key.toUpperCase();
+  const prime = e.shiftKey;
+  if (['U', 'D', 'L', 'R', 'F', 'B'].includes(key)) {
+    turn(key, prime);
+  } else if (e.code === 'Space') {
+    e.preventDefault();
+    scramble();
+  }
+});
+
+// Init
+createCubies();
+</script>
+</body>
+</html>

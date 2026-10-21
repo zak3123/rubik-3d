@@ -192,5 +192,5 @@ class MechanicalAudio {
   }
 }
 
-// Global singleton instance
+window.MechanicalAudio = MechanicalAudio;
 window.cubeAudio = new MechanicalAudio();

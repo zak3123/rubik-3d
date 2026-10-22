@@ -166,12 +166,12 @@ class CubeRenderer(
             GLES20.glUniform4fv(uColorLoc, 1, plasticColor, 0)
             mesh.drawBody()
 
-            // 2. Draw outer stickers
-            for ((face, sticker) in cubie.localStickers) {
-                if (sticker != Face.NONE) {
-                    GLES20.glUniform4fv(uColorLoc, 1, sticker.colorRgba, 0)
-                    mesh.drawSticker(face)
-                }
+            // 2. Draw outer stickers (zero GC allocation)
+            val stickers = cubie.activeStickers
+            for (i in stickers.indices) {
+                val slot = stickers[i]
+                GLES20.glUniform4fv(uColorLoc, 1, slot.color.colorRgba, 0)
+                mesh.drawSticker(slot.face)
             }
         }
     }

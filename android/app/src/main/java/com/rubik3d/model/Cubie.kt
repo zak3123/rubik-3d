@@ -18,16 +18,29 @@ class Cubie(
     val ux = intArrayOf(1, 0, 0)
     val uy = intArrayOf(0, 1, 0)
     val uz = intArrayOf(0, 0, 1)
-    // Sticker colors on local faces (+X=R, -X=L, +Y=U, -Y=D, +Z=F, -Z=B)
-    val localStickers = mapOf(
-        Face.R to (if (ix == 1) Face.R else Face.NONE),
-        Face.L to (if (ix == -1) Face.L else Face.NONE),
-        Face.U to (if (iy == 1) Face.U else Face.NONE),
-        Face.D to (if (iy == -1) Face.D else Face.NONE),
-        Face.F to (if (iz == 1) Face.F else Face.NONE),
-        Face.B to (if (iz == -1) Face.B else Face.NONE)
-    )
 
+    data class StickerSlot(val face: Face, val color: Face)
+
+    val activeStickers: Array<StickerSlot> = buildList(6) {
+        if (ix == 1) add(StickerSlot(Face.R, Face.R))
+        if (ix == -1) add(StickerSlot(Face.L, Face.L))
+        if (iy == 1) add(StickerSlot(Face.U, Face.U))
+        if (iy == -1) add(StickerSlot(Face.D, Face.D))
+        if (iz == 1) add(StickerSlot(Face.F, Face.F))
+        if (iz == -1) add(StickerSlot(Face.B, Face.B))
+    }.toTypedArray()
+
+    // Sticker colors on local faces (+X=R, -X=L, +Y=U, -Y=D, +Z=F, -Z=B)
+    val localStickers: Map<Face, Face> by lazy {
+        mapOf(
+            Face.R to (if (ix == 1) Face.R else Face.NONE),
+            Face.L to (if (ix == -1) Face.L else Face.NONE),
+            Face.U to (if (iy == 1) Face.U else Face.NONE),
+            Face.D to (if (iy == -1) Face.D else Face.NONE),
+            Face.F to (if (iz == 1) Face.F else Face.NONE),
+            Face.B to (if (iz == -1) Face.B else Face.NONE)
+        )
+    }
     // 4x4 model rotation matrix
     val rotationMatrix = FloatArray(16)
     private val tempMatrix = FloatArray(16)

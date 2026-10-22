@@ -1,13 +1,17 @@
 package com.rubik3d.ui
-
+import android.content.Context
 import android.graphics.Typeface
 import android.opengl.GLSurfaceView
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
@@ -50,6 +54,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var algorithmPlayer: AlgorithmPlayer
     private lateinit var learnPlayer: AlgorithmPlayer
     private lateinit var solvePlayer: AlgorithmPlayer
+    private var vibrator: Vibrator? = null
 
     // Mode Navigation Tabs
     private lateinit var btnTabPlay: Button
@@ -142,8 +147,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         setContentView(R.layout.activity_main)
-
         initViews()
         initCoreEngine()
         setupModeNavigation()
@@ -235,6 +240,7 @@ class MainActivity : AppCompatActivity() {
         algorithmPlayer = AlgorithmPlayer(cubeState, rotationManager)
         learnPlayer = AlgorithmPlayer(cubeState, rotationManager)
         solvePlayer = AlgorithmPlayer(cubeState, rotationManager)
+        vibrator = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
 
         // Warm up Kociemba solver tables in background
         Thread {
@@ -252,7 +258,7 @@ class MainActivity : AppCompatActivity() {
         rotationManager.onMoveFinishedListener = { move ->
             val isDouble = Math.abs(move.angleDegrees) > 100f
             audioPlayer.playSnap(isDouble)
-
+            triggerHaptic()
             runOnUiThread {
                 when (currentMode) {
                     Mode.PLAY -> {
@@ -272,6 +278,16 @@ class MainActivity : AppCompatActivity() {
                     Mode.SOLVE -> solvePlayer.onMoveCompleted(move)
                 }
             }
+        }
+    }
+
+    private fun triggerHaptic() {
+        val vib = vibrator ?: return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vib.vibrate(VibrationEffect.createOneShot(20L, VibrationEffect.DEFAULT_AMPLITUDE))
+        } else {
+            @Suppress("DEPRECATION")
+            vib.vibrate(20L)
         }
     }
 

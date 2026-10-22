@@ -115,8 +115,8 @@ class RotationManager(private val cubeState: CubeState) {
         animStartTime = SystemClock.uptimeMillis()
     }
 
-    private fun findMoveForAxisLayerAngle(axis: Int, layer: Int, angle: Float): Move? {
-        val candidates = listOf(
+    companion object {
+        private val ALL_MOVES = arrayOf(
             Move.R, Move.R_PRIME, Move.R2,
             Move.L, Move.L_PRIME, Move.L2,
             Move.U, Move.U_PRIME, Move.U2,
@@ -124,9 +124,15 @@ class RotationManager(private val cubeState: CubeState) {
             Move.F, Move.F_PRIME, Move.F2,
             Move.B, Move.B_PRIME, Move.B2
         )
-        return candidates.firstOrNull {
-            it.axis == axis && it.layer == layer && Math.abs(it.angleDegrees - angle) < 1f
+    }
+
+    private fun findMoveForAxisLayerAngle(axis: Int, layer: Int, angle: Float): Move? {
+        for (m in ALL_MOVES) {
+            if (m.axis == axis && m.layer == layer && Math.abs(m.angleDegrees - angle) < 1f) {
+                return m
+            }
         }
+        return null
     }
 
     /**
@@ -169,8 +175,8 @@ class RotationManager(private val cubeState: CubeState) {
                 activeMove = nextMove
                 currentAngle = 0f
                 animStartTime = SystemClock.uptimeMillis()
-                animStartTime = SystemClock.uptimeMillis()
                 onMoveStartedListener?.invoke(nextMove)
+            }
         } else {
             val move = activeMove ?: return
             val now = SystemClock.uptimeMillis()

@@ -14,12 +14,12 @@
     <string name="solve_computing">Computing solution…</string>
     <string name="solve_already_solved">Cube is already solved!</string>
     <string name="solve_no_solution">Cannot solve: invalid cube state</string>
-    <string name="solve_step_format">Step: %d / %d</string>
+    <string name="solve_step_format">Step: %1$d / %2$d</string>
     <string name="solve_solution_format">Solution found: %d moves</string>
 
     <string name="learn_setup_btn">🎯 Setup Case</string>
     <string name="learn_demo_play">▶ Demo</string>
-    <string name="learn_step_format">Step: %d / %d</string>
+    <string name="learn_step_format">Step: %1$d / %2$d</string>
 
     <string name="algo_hint">Formula (e.g. R U R\' U\')</string>
     <string name="algo_load">Load</string>
@@ -28,7 +28,7 @@
     <string name="algo_prev">◀ Prev</string>
     <string name="algo_next">Next ▶</string>
     <string name="algo_reset">↺ Reset</string>
-    <string name="algo_step_format">Step: %d / %d</string>
+    <string name="algo_step_format">Step: %1$d / %2$d</string>
 
     <string name="settings_title">SETTINGS</string>
     <string name="sound_enabled">Sound Effects</string>

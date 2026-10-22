@@ -349,10 +349,6 @@ class MainActivity : AppCompatActivity() {
                     loadLesson(TutorialRepository.LESSONS[0])
                 }
             }
-                if (selectedLesson == null && TutorialRepository.LESSONS.isNotEmpty()) {
-                    loadLesson(TutorialRepository.LESSONS[0])
-                }
-            }
             Mode.SOLVE -> {
                 btnTabSolve.setTextColor(activeColor)
                 btnTabSolve.setTypeface(null, Typeface.BOLD)
@@ -476,7 +472,7 @@ class MainActivity : AppCompatActivity() {
 
         val sb = StringBuilder()
         for (i in moves.indices) {
-            val token = moves[i].name
+            val token = moves[i].notation
             if (i == currentIndex) {
                 sb.append("<font color='#4C9AFF'><b><u>").append(token).append("</u></b></font> ")
             } else if (i < currentIndex) {
@@ -611,7 +607,7 @@ class MainActivity : AppCompatActivity() {
 
         val sb = StringBuilder()
         for (i in moves.indices) {
-            val token = moves[i].name
+            val token = moves[i].notation
             if (i == currentIndex) {
                 sb.append("<font color='#4C9AFF'><b><u>").append(token).append("</u></b></font> ")
             } else if (i < currentIndex) {
@@ -654,7 +650,7 @@ class MainActivity : AppCompatActivity() {
                         tvSolveInfo.text = getString(R.string.solve_already_solved)
                     } else {
                         tvSolveInfo.text = getString(R.string.solve_solution_format, solutionMoves.size)
-                        val notation = solutionMoves.joinToString(" ") { it.name }
+                        val notation = solutionMoves.joinToString(" ") { it.notation }
                         solvePlayer.loadAlgorithm(notation)
                     }
                 }
@@ -710,7 +706,7 @@ class MainActivity : AppCompatActivity() {
 
         val sb = StringBuilder()
         for (i in moves.indices) {
-            val token = moves[i].name
+            val token = moves[i].notation
             if (i == currentIndex) {
                 sb.append("<font color='#4C9AFF'><b><u>").append(token).append("</u></b></font> ")
             } else if (i < currentIndex) {
@@ -730,6 +726,7 @@ class MainActivity : AppCompatActivity() {
                 scrollSolveMoves.smoothScrollTo(0, 0)
             }
         }
+    }
 
     private fun setupSettingsModal() {
         btnSettings.setOnClickListener {

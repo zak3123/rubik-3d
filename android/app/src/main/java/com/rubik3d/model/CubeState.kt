@@ -61,6 +61,7 @@ class CubeState {
                 if (cubie.iy != 0 && cubie.uy[1] != 1) return false
                 if (cubie.iz != 0 && cubie.uz[2] != 1) return false
             }
+        }
         return true
     }
 

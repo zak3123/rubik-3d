@@ -3,3 +3,8 @@ pasted/
 debug_lbl.js
 test_lbl.js
 test_solver_proto.js
+.gradle/
+build/
+**/build/
+*.iml
+local.properties

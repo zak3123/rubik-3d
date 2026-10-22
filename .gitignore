@@ -1,1 +1,5 @@
 pasted/
+*.tmp
+debug_lbl.js
+test_lbl.js
+test_solver_proto.js

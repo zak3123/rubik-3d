@@ -1,0 +1,19 @@
+<resources>
+    <color name="bg_dark">#0F1115</color>
+    <color name="surface_dark">#1A1D24</color>
+    <color name="text_primary">#F0F2F5</color>
+    <color name="text_secondary">#8C95A6</color>
+    <color name="accent_blue">#2F80ED</color>
+    <color name="accent_glow">#4C9AFF</color>
+    <color name="button_bg">#252A36</color>
+    <color name="button_stroke">#373E4F</color>
+
+    <!-- Speedcube WCA colors -->
+    <color name="cube_plastic">#111215</color>
+    <color name="face_white">#F5F6F8</color>
+    <color name="face_yellow">#FFD400</color>
+    <color name="face_green">#009E43</color>
+    <color name="face_blue">#0051BA</color>
+    <color name="face_orange">#FF5800</color>
+    <color name="face_red">#C41E3A</color>
+</resources>

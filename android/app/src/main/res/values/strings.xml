@@ -1,0 +1,38 @@
+<resources>
+    <string name="app_name">Rubik 3D</string>
+    <string name="action_scramble">Scramble</string>
+    <string name="action_reset">Reset</string>
+    <string name="moves_format">Moves: %d</string>
+    <string name="timer_default">00:00.00</string>
+    <string name="status_solved">Solved!</string>
+
+    <string name="tab_play">Free Play</string>
+    <string name="tab_algo">Algorithms</string>
+    <string name="tab_learn">Tutorial</string>
+    <string name="tab_solve">Solver</string>
+    <string name="solve_action_btn">⚡ Solve Cube</string>
+    <string name="solve_computing">Computing solution…</string>
+    <string name="solve_already_solved">Cube is already solved!</string>
+    <string name="solve_no_solution">Cannot solve: invalid cube state</string>
+    <string name="solve_step_format">Step: %d / %d</string>
+    <string name="solve_solution_format">Solution found: %d moves</string>
+
+    <string name="learn_setup_btn">🎯 Setup Case</string>
+    <string name="learn_demo_play">▶ Demo</string>
+    <string name="learn_step_format">Step: %d / %d</string>
+
+    <string name="algo_hint">Formula (e.g. R U R\' U\')</string>
+    <string name="algo_load">Load</string>
+    <string name="algo_play">▶ Play</string>
+    <string name="algo_pause">⏸ Pause</string>
+    <string name="algo_prev">◀ Prev</string>
+    <string name="algo_next">Next ▶</string>
+    <string name="algo_reset">↺ Reset</string>
+    <string name="algo_step_format">Step: %d / %d</string>
+
+    <string name="settings_title">SETTINGS</string>
+    <string name="sound_enabled">Sound Effects</string>
+    <string name="volume_label">Volume: %d%%</string>
+    <string name="speed_label">Speed: %d ms</string>
+    <string name="action_close">Close</string>
+</resources>
